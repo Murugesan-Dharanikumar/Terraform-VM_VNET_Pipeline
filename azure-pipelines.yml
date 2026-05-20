@@ -5,14 +5,13 @@ pool:
   name: DEVPIPELINE
 
 variables:
-  terraformVersion: '1.6.6'
-  workingDirectory: 'terraform'
-
   backendServiceArm: 'Azure-Service-Connection'
   backendResourceGroupName: 'mypipeline-rg'
   backendStorageAccountName: 'pipelinestroageaccount'
   backendContainerName: 'storagecontainerspipe'
   backendKey: 'terraform.tfstate'
+  terraformVersion: 'latest'
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
 
 stages:
 
@@ -21,17 +20,15 @@ stages:
 # =========================
 - stage: Validate
   displayName: Terraform Validate
-
   jobs:
   - job: Validate
     displayName: Validate Terraform
-
     steps:
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
       inputs:
-        terraformVersion: $(terraformVersion)
+        terraformVersion: '$(terraformVersion)'
 
     - task: TerraformTaskV4@4
       displayName: Terraform Init
@@ -63,7 +60,6 @@ stages:
   jobs:
   - job: Plan
     displayName: Terraform Plan
-
     steps:
 
     - task: TerraformInstaller@1

@@ -14,8 +14,6 @@ crash.log
 # .terraform.lock.hcl
 
 # Variables files (contains secrets)
-*.tfvars
-*.tfvars.json
 
 # CLI configuration files
 .terraformrc

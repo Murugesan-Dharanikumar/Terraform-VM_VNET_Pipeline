@@ -5,7 +5,7 @@ vnet_name   = "my-vnet"
 subnet_name = "my-subnet"
 
 vm_name = "my-linux-vm"
-vm_size = "Standard_B2ms"
+vm_size = "Standard_D2s_v5"
 
 admin_username = "azureuser"
 admin_password = "P@ssword1234!"

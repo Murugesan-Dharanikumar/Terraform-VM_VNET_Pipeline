@@ -6,12 +6,15 @@ pool:
 
 variables:
   backendServiceArm: 'Azure-Service-Connection'
+
   backendResourceGroupName: 'mypipeline-rg'
-  backendStorageAccountName: 'pipelinestroageaccount'
+  backendStorageAccountName: 'pipelinestorageaccount'
   backendContainerName: 'storagecontainerspipe'
   backendKey: 'terraform.tfstate'
-  terraformVersion: 'latest'
-  workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+  terraformVersion: '1.9.8'
+
+  workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
 
 stages:
 
@@ -19,19 +22,15 @@ stages:
 # VALIDATE
 # =========================
 - stage: Validate
-  displayName: Terraform Validate
   jobs:
   - job: Validate
-    displayName: Validate Terraform
     steps:
 
     - task: TerraformInstaller@1
-      displayName: Install Terraform
       inputs:
         terraformVersion: '$(terraformVersion)'
 
     - task: TerraformTaskV4@4
-      displayName: Terraform Init
       inputs:
         provider: 'azurerm'
         command: 'init'
@@ -43,7 +42,6 @@ stages:
         backendAzureRmKey: '$(backendKey)'
 
     - task: TerraformTaskV4@4
-      displayName: Terraform Validate
       inputs:
         provider: 'azurerm'
         command: 'validate'
@@ -54,21 +52,16 @@ stages:
 # PLAN
 # =========================
 - stage: Plan
-  displayName: Terraform Plan
   dependsOn: Validate
-
   jobs:
   - job: Plan
-    displayName: Terraform Plan
     steps:
 
     - task: TerraformInstaller@1
-      displayName: Install Terraform
       inputs:
         terraformVersion: '$(terraformVersion)'
 
     - task: TerraformTaskV4@4
-      displayName: Terraform Init
       inputs:
         provider: 'azurerm'
         command: 'init'
@@ -80,11 +73,11 @@ stages:
         backendAzureRmKey: '$(backendKey)'
 
     - task: TerraformTaskV4@4
-      displayName: Terraform Plan
       inputs:
         provider: 'azurerm'
         command: 'plan'
         workingDirectory: '$(workingDirectory)'
+        commandOptions: '-out=tfplan'
         environmentServiceNameAzureRM: '$(backendServiceArm)'
 
 
@@ -92,26 +85,20 @@ stages:
 # APPLY
 # =========================
 - stage: Apply
-  displayName: Terraform Apply
   dependsOn: Plan
-
   jobs:
   - deployment: Apply
-    displayName: Terraform Apply
     environment: dev
-
     strategy:
       runOnce:
         deploy:
           steps:
 
           - task: TerraformInstaller@1
-            displayName: Install Terraform
             inputs:
               terraformVersion: '$(terraformVersion)'
 
           - task: TerraformTaskV4@4
-            displayName: Terraform Init
             inputs:
               provider: 'azurerm'
               command: 'init'
@@ -123,7 +110,6 @@ stages:
               backendAzureRmKey: '$(backendKey)'
 
           - task: TerraformTaskV4@4
-            displayName: Terraform Apply
             inputs:
               provider: 'azurerm'
               command: 'apply'

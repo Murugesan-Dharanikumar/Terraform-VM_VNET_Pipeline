@@ -1,0 +1,31 @@
+# Terraform working directory
+.terraform/
+
+# Terraform state files (NEVER commit these)
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Plan files
+*.tfplan
+
+# Terraform lock file (optional to commit, but often ignored in simple projects)
+# Uncomment if you DON'T want provider version locking in Git
+# .terraform.lock.hcl
+
+# Variables files (contains secrets)
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# Log files
+*.log
+
+# Backup files
+*.backup
+*.bak
+
+# MacOS / Linux noise
+.DS_Store
+*.swp

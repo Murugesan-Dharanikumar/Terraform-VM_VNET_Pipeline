@@ -1,0 +1,264 @@
+trigger:
+- main
+
+pool:
+  name: DEVPIPELINE
+
+variables:
+  backendServiceArm: 'Azure-Service-Connection'
+   
+  terraformVersion: '1.9.8'
+
+  workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+
+stages:
+
+# ======================================================
+# VALIDATE
+# ======================================================
+- stage: Validate
+  displayName: Terraform Validate
+
+  jobs:
+  - job: Validate
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(workingDirectory)'
+
+        backendServiceArm: '$(backendServiceArm)'
+        backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
+        backendAzureRmContainerName: '$(backendContainerName)'
+        backendAzureRmKey: '$(backendKey)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Validate
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(workingDirectory)'
+
+
+# ======================================================
+# PLAN
+# ======================================================
+- stage: Plan
+  displayName: Terraform Plan
+  dependsOn: Validate
+
+  jobs:
+  - job: Plan
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(workingDirectory)'
+
+        backendServiceArm: '$(backendServiceArm)'
+        backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
+        backendAzureRmContainerName: '$(backendContainerName)'
+        backendAzureRmKey: '$(backendKey)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(workingDirectory)'
+        environmentServiceNameAzureRM: '$(backendServiceArm)'
+        commandOptions: '-out=tfplan'
+
+
+# ======================================================
+# APPLY
+# ======================================================
+- stage: Apply
+  displayName: Terraform Apply
+  dependsOn: Plan
+
+  jobs:
+  - deployment: Apply
+    displayName: Terraform Apply
+    environment: dev
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          - task: TerraformInstaller@1
+            displayName: Install Terraform
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(workingDirectory)'
+
+              backendServiceArm: '$(backendServiceArm)'
+              backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
+              backendAzureRmContainerName: '$(backendContainerName)'
+              backendAzureRmKey: '$(backendKey)'
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: '$(backendServiceArm)'
+              commandOptions: '-auto-approve'
+trigger:
+- main
+
+pool:
+  name: DEVPIPELINE
+
+variables:
+  backendServiceArm: 'Azure-Service-Connection'
+
+  backendResourceGroupName: 'mypipeline-rg'
+  backendStorageAccountName: 'pipelinestorageaccount'
+  backendContainerName: 'storagecontainerspipe'
+  backendKey: 'terraform.tfstate'
+
+  terraformVersion: 'lastest'
+
+  workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+
+stages:
+
+# =========================
+# VALIDATE
+# =========================
+- stage: Validate
+  jobs:
+  - job: Validate
+    steps:
+
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - script: |
+        terraform version
+      displayName: Verify Terraform Installation
+
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(workingDirectory)'
+        backendServiceArm: '$(backendServiceArm)'
+        backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
+        backendAzureRmContainerName: '$(backendContainerName)'
+        backendAzureRmKey: '$(backendKey)'
+
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(workingDirectory)'
+
+
+# =========================
+# PLAN
+# =========================
+- stage: Plan
+  dependsOn: Validate
+  jobs:
+  - job: Plan
+    steps:
+
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - script: |
+        terraform version
+      displayName: Verify Terraform Installation
+
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(workingDirectory)'
+        backendServiceArm: '$(backendServiceArm)'
+        backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
+        backendAzureRmContainerName: '$(backendContainerName)'
+        backendAzureRmKey: '$(backendKey)'
+
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(workingDirectory)'
+        commandOptions: '-out=tfplan'
+        environmentServiceNameAzureRM: '$(backendServiceArm)'
+
+
+# =========================
+# APPLY
+# =========================
+- stage: Apply
+  dependsOn: Plan
+  jobs:
+  - deployment: Apply
+    environment: dev
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+
+          - script: |
+              terraform version
+            displayName: Verify Terraform Installation
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(workingDirectory)'
+              backendServiceArm: '$(backendServiceArm)'
+              backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
+              backendAzureRmContainerName: '$(backendContainerName)'
+              backendAzureRmKey: '$(backendKey)'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              commandOptions: '-auto-approve'
+              environmentServiceNameAzureRM: '$(backendServiceArm)'

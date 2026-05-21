@@ -40,10 +40,6 @@ stages:
         command: 'init'
         workingDirectory: '$(workingDirectory)'
         backendServiceArm: '$(backendServiceArm)'
-        backendAzureRmResourceGroupName: '$(backendResourceGroupName)'
-        backendAzureRmStorageAccountName: '$(backendStorageAccountName)'
-        backendAzureRmContainerName: '$(backendContainerName)'
-        backendAzureRmKey: '$(backendKey)'
 
     - task: TerraformTaskV4@4
       inputs:

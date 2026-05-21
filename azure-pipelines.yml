@@ -12,7 +12,7 @@ variables:
   backendContainerName: 'storagecontainerspipe'
   backendKey: 'terraform.tfstate'
 
-  terraformVersion: '1.9.8'
+  terraformVersion: '1.8.5'
 
   workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
 
@@ -29,6 +29,10 @@ stages:
     - task: TerraformInstaller@1
       inputs:
         terraformVersion: '$(terraformVersion)'
+
+    - script: |
+        terraform version
+      displayName: Verify Terraform Installation
 
     - task: TerraformTaskV4@4
       inputs:
@@ -61,6 +65,10 @@ stages:
       inputs:
         terraformVersion: '$(terraformVersion)'
 
+    - script: |
+        terraform version
+      displayName: Verify Terraform Installation
+
     - task: TerraformTaskV4@4
       inputs:
         provider: 'azurerm'
@@ -89,6 +97,7 @@ stages:
   jobs:
   - deployment: Apply
     environment: dev
+
     strategy:
       runOnce:
         deploy:
@@ -97,6 +106,10 @@ stages:
           - task: TerraformInstaller@1
             inputs:
               terraformVersion: '$(terraformVersion)'
+
+          - script: |
+              terraform version
+            displayName: Verify Terraform Installation
 
           - task: TerraformTaskV4@4
             inputs:
